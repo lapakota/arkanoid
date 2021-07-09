@@ -1,0 +1,28 @@
+{
+  "GAME_WIDTH": 1440,
+  "GAME_HEIGHT": 800,
+  "FPS": 60,
+  "LIVES": 3,
+  "DAMAGED_FOR_SPEEDUP": 9,
+
+  "PADDLE_WIDTH": 250,
+  "PADDLE_HEIGHT": 30,
+  "PADDLE_SPEED": 40,
+  "PADDLE_COLOR": "gray",
+
+  "BALL_RADIUS": 12,
+  "BALL_SPEED": 10,
+  "BALL_COLOR": "white",
+
+  "BLOCK_WIDTH": 115,
+  "BLOCK_HEIGHT": 35,
+  "BLOCK_COLOR": "gray",
+
+  "BONK_SOUND": "sounds/bonk.wav",
+  "CRASH_SOUND": "sounds/crash.wav",
+  "LIFE_SOUND": "sounds/loose_life.wav",
+  "LOOSE_SOUND": "sounds/game_over.wav",
+  "WIN_SOUND": "sounds/win.wav",
+
+  "BG_PATH": "images/hex.jpg"
+}
