@@ -25,6 +25,7 @@ class Game:
 
     def restart_game(self) -> None:
         self.lives = CONFIG.LIVES
+        self.scores = 0
         self.run = True
         self.main_loop()
 
