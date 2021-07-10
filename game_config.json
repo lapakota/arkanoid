@@ -10,7 +10,7 @@
   "PADDLE_SPEED": 30,
   "PADDLE_COLOR": "gray",
 
-  "BALL_RADIUS": 12,
+  "BALL_RADIUS": 15,
   "BALL_SPEED": 10,
   "BALL_COLOR": "white",
 

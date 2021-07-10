@@ -7,6 +7,11 @@ from config import CONFIG
 from paddle import Paddle
 
 
+def handle_sticking(ball: Ball, paddle: Paddle) -> None:
+    if ball.is_stopped():
+        ball.stick_to_the_paddle(paddle)
+
+
 class KeyHandler:
     def __init__(self, paddle: Paddle, ball: Ball):
         self.paddle = paddle
@@ -20,9 +25,11 @@ class KeyHandler:
         if (key[left_buttons[0]] or key[left_buttons[1]]) \
                 and self.paddle.rect.left > 0:
             self.paddle.rect.left -= self.paddle.movement_speed
+            handle_sticking(self.ball, self.paddle)
         elif (key[right_buttons[0]] or key[right_buttons[1]]) \
                 and self.paddle.rect.right < CONFIG.GAME_WIDTH:
             self.paddle.rect.right += self.paddle.movement_speed
+            handle_sticking(self.ball, self.paddle)
         elif key[pygame.K_e]:
             if self.ball.is_stopped():
                 self.ball.start_moving()
@@ -53,15 +60,16 @@ class MouseHandler:
         if self.ball.is_stopped() and is_right_button_pressed:
             self.ball.start_moving()
 
-        if is_left_button_pressed \
-                and mouse_x - self.paddle.width // 2 > 0 \
-                and mouse_x + self.paddle.width // 2 < CONFIG.GAME_WIDTH:
-            self.paddle.rect.left = mouse_x - self.paddle.width // 2
-        # For correct processing at the edges
-        if is_left_button_pressed and mouse_x - self.paddle.width // 2 <= 0:
-            self.paddle.rect.left = 0
-        elif is_left_button_pressed and mouse_x + self.paddle.width // 2 >= CONFIG.GAME_WIDTH:
-            self.paddle.rect.right = CONFIG.GAME_WIDTH
+        if is_left_button_pressed:
+            handle_sticking(self.ball, self.paddle)
+
+            if mouse_x - self.paddle.width // 2 > 0 and mouse_x + self.paddle.width // 2 < CONFIG.GAME_WIDTH:
+                self.paddle.rect.left = mouse_x - self.paddle.width // 2
+            # For correct processing at the edges
+            if mouse_x - self.paddle.width // 2 <= 0:
+                self.paddle.rect.left = 0
+            elif mouse_x + self.paddle.width // 2 >= CONFIG.GAME_WIDTH:
+                self.paddle.rect.right = CONFIG.GAME_WIDTH
 
 
 class GeneralEventsHandler:

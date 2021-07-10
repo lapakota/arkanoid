@@ -22,6 +22,7 @@ class Game:
         self.scores = 0
         self.paddle = Paddle(CONFIG.PADDLE_WIDTH, CONFIG.PADDLE_HEIGHT, CONFIG.PADDLE_SPEED, CONFIG.PADDLE_COLOR)
         self.ball = Ball(CONFIG.BALL_RADIUS, CONFIG.BALL_SPEED, CONFIG.BALL_COLOR)
+        self.ball.stick_to_the_paddle(self.paddle)
         self.blocks = self._spawn_blocks_map()
         self.mouse_handler = MouseHandler(self.paddle, self.ball)
         self.key_handler = KeyHandler(self.paddle, self.ball)
@@ -48,7 +49,7 @@ class Game:
             # movement
             self.ball.move()
             # loose
-            self._handle_loosing_life(screen, self.ball)
+            self._handle_loosing_life(screen, self.ball, self.paddle)
             # win
             self._handle_win(screen, self.blocks)
             # collisions
@@ -73,10 +74,10 @@ class Game:
         [screen.blit(text, (left_indent + width_between_texts * i,
                             CONFIG.GAME_HEIGHT - down_indent)) for i, text in enumerate(all_text)]
 
-    def _handle_loosing_life(self, screen: pygame.surface, ball: Ball) -> None:
+    def _handle_loosing_life(self, screen: pygame.surface, ball: Ball, paddle: Paddle) -> None:
         if ball.is_out_of_bounds():
             self._loose_life()
-            ball.respawn()
+            ball.respawn(paddle)
             if self._is_dead():
                 Sounds.GAME_LOOSE.value.play()
                 self.run = False

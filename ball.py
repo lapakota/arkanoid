@@ -19,6 +19,10 @@ class Ball:
                                 self.rect_side, self.rect_side)
         self._damaged_combo = 0
 
+    def stick_to_the_paddle(self, paddle: Paddle):
+        self.rect.centerx = paddle.rect.centerx
+        self.rect.centery = paddle.rect.centery - CONFIG.PADDLE_HEIGHT // 2 - self.radius
+
     def is_stopped(self) -> bool:
         return self.dx == 0 and self.dy == 0
 
@@ -38,7 +42,7 @@ class Ball:
         else:
             delta_y = rect.bottom - self.rect.top
 
-        epsilon = 5
+        epsilon = 10
         # collision with angle of rect
         if abs(delta_x - delta_y) < epsilon:
             self.dx, self.dy = -self.dx, -self.dy
@@ -82,8 +86,9 @@ class Ball:
         self.rect.x += self.movement_speed * self.dx
         self.rect.y += self.movement_speed * self.dy
 
-    def respawn(self) -> None:
+    def respawn(self, paddle: Paddle) -> None:
         self.__init__(self.radius, self.movement_speed, self.color)
+        self.stick_to_the_paddle(paddle)
 
     def draw(self, screen: pygame.surface) -> None:
         pygame.draw.circle(screen, self.color, self.rect.center, self.radius)
