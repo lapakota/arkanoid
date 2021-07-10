@@ -16,6 +16,7 @@ To start the game run
 * **Esc**: Quit
 * **A or Arrow_left**: Move paddle left
 * **D or Arrow_right**: Move paddle right
+* **E or Right_mouse_button**: Start the ball movement
 * **You can also move the paddle by moving the mouse by holding down the left mouse button**
 
 The game is considered won if there are no blocks left on the field

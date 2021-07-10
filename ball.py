@@ -1,4 +1,4 @@
-from random import randrange
+import random
 from typing import List, Union
 
 from block import Block
@@ -8,17 +8,23 @@ from sounds import *
 
 class Ball:
     def __init__(self, radius, speed, color):
-        self.dx = 1
-        self.dy = -1
+        self.dx = 0
+        self.dy = 0
         self.radius = radius
         self.movement_speed = speed
         self.color = pygame.Color(color)
         self.rect_side = int(self.radius * 2 ** 0.5)  # side of the inscribed square
-        self._position = randrange(self.rect_side, CONFIG.GAME_WIDTH - self.rect_side)
-        y_offset_from_center = 100
-        self.rect = pygame.Rect(self._position, CONFIG.GAME_HEIGHT // 2 + y_offset_from_center,
+        y_offset_from_center = 250
+        self.rect = pygame.Rect(CONFIG.GAME_WIDTH // 2 - self.radius, CONFIG.GAME_HEIGHT // 2 + y_offset_from_center,
                                 self.rect_side, self.rect_side)
         self._damaged_combo = 0
+
+    def is_stopped(self) -> bool:
+        return self.dx == 0 and self.dy == 0
+
+    def start_moving(self) -> None:
+        self.dx = random.choice([1, -1])  # move right or left
+        self.dy = -1
 
     def bounce_from_collided_rect(self, rect: pygame.Rect) -> None:
         """The function changes the dx, dy of the ball,
@@ -77,11 +83,7 @@ class Ball:
         self.rect.y += self.movement_speed * self.dy
 
     def respawn(self) -> None:
-        new_ball = Ball(self.radius, self.movement_speed, self.color)
-        self.dx = new_ball.dx
-        self.dy = new_ball.dy
-        self._position = new_ball._position
-        self.rect = new_ball.rect
+        self.__init__(self.radius, self.movement_speed, self.color)
 
     def draw(self, screen: pygame.surface) -> None:
         pygame.draw.circle(screen, self.color, self.rect.center, self.radius)

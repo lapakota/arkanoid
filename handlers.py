@@ -1,56 +1,78 @@
+from typing import Union
+
 import pygame
 
+from ball import Ball
 from config import CONFIG
 from paddle import Paddle
 
 
-def key_handler(paddle: Paddle) -> None:
-    left_buttons = (pygame.K_a, pygame.K_LEFT)
-    right_buttons = (pygame.K_d, pygame.K_RIGHT)
-    key = pygame.key.get_pressed()
+class KeyHandler:
+    def __init__(self, paddle: Paddle, ball: Ball):
+        self.paddle = paddle
+        self.ball = ball
 
-    if (key[left_buttons[0]] or key[left_buttons[1]]) \
-            and paddle.rect.left > 0:
-        paddle.rect.left -= paddle.movement_speed
-    elif (key[right_buttons[0]] or key[right_buttons[1]]) \
-            and paddle.rect.right < CONFIG.GAME_WIDTH:
-        paddle.rect.right += paddle.movement_speed
-    # cheats
-    else:
-        growth_rate = 5
-        if key[pygame.K_z]:
-            if paddle.width < CONFIG.GAME_WIDTH - growth_rate:
-                paddle.rect.w += growth_rate
-                paddle.width += growth_rate
-        elif key[pygame.K_x]:
-            smallest_width = 30 + growth_rate
-            if paddle.width >= smallest_width:
-                paddle.rect.w -= 5
-                paddle.width -= 5
+    def handle_key_pressing(self) -> None:
+        left_buttons = (pygame.K_a, pygame.K_LEFT)
+        right_buttons = (pygame.K_d, pygame.K_RIGHT)
+        key = pygame.key.get_pressed()
 
+        if (key[left_buttons[0]] or key[left_buttons[1]]) \
+                and self.paddle.rect.left > 0:
+            self.paddle.rect.left -= self.paddle.movement_speed
+        elif (key[right_buttons[0]] or key[right_buttons[1]]) \
+                and self.paddle.rect.right < CONFIG.GAME_WIDTH:
+            self.paddle.rect.right += self.paddle.movement_speed
+        elif key[pygame.K_e]:
+            if self.ball.is_stopped():
+                self.ball.start_moving()
 
-def mouse_handler(paddle: Paddle) -> None:
-    mouse_x, _ = pygame.mouse.get_pos()
-    is_left_button_pressed, _, _ = pygame.mouse.get_pressed(3)
-
-    if is_left_button_pressed \
-            and mouse_x - paddle.width // 2 > 0 \
-            and mouse_x + paddle.width // 2 < CONFIG.GAME_WIDTH:
-        paddle.rect.left = mouse_x - paddle.width // 2
-    # For correct processing at the edges
-    if is_left_button_pressed and mouse_x - paddle.width // 2 <= 0:
-        paddle.rect.left = 0
-    elif is_left_button_pressed and mouse_x + paddle.width // 2 >= CONFIG.GAME_WIDTH:
-        paddle.rect.right = CONFIG.GAME_WIDTH
+        # cheats
+        else:
+            growth_rate = 5
+            if key[pygame.K_z]:
+                if self.paddle.width < CONFIG.GAME_WIDTH:
+                    self.paddle.rect.w += growth_rate
+                    self.paddle.width += growth_rate
+            elif key[pygame.K_x]:
+                smallest_width = 30 + growth_rate
+                if self.paddle.width >= smallest_width:
+                    self.paddle.rect.w -= 5
+                    self.paddle.width -= 5
 
 
-def events_handler() -> bool:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            exit()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+class MouseHandler:
+    def __init__(self, paddle: Paddle, ball: Ball):
+        self.paddle = paddle
+        self.ball = ball
+
+    def handle_mouse_events(self) -> None:
+        mouse_x, _ = pygame.mouse.get_pos()
+        is_left_button_pressed, _, is_right_button_pressed = pygame.mouse.get_pressed(3)
+
+        if self.ball.is_stopped() and is_right_button_pressed:
+            self.ball.start_moving()
+
+        if is_left_button_pressed \
+                and mouse_x - self.paddle.width // 2 > 0 \
+                and mouse_x + self.paddle.width // 2 < CONFIG.GAME_WIDTH:
+            self.paddle.rect.left = mouse_x - self.paddle.width // 2
+        # For correct processing at the edges
+        if is_left_button_pressed and mouse_x - self.paddle.width // 2 <= 0:
+            self.paddle.rect.left = 0
+        elif is_left_button_pressed and mouse_x + self.paddle.width // 2 >= CONFIG.GAME_WIDTH:
+            self.paddle.rect.right = CONFIG.GAME_WIDTH
+
+
+class GeneralEventsHandler:
+    @staticmethod
+    def handle_general_events() -> Union[None, bool]:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 exit()
-            elif event.key == pygame.K_SPACE:
-                restart = True
-                return restart
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    exit()
+                elif event.key == pygame.K_SPACE:
+                    restart = True
+                    return restart

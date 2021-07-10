@@ -9,7 +9,7 @@ class Paddle:
         self.movement_speed = speed
         self.color = pygame.Color(color)
         bottom_indent = 10
-        self.rect = pygame.Rect(CONFIG.GAME_WIDTH // 2 - self.height // 2,
+        self.rect = pygame.Rect(CONFIG.GAME_WIDTH // 2 - self.width // 2,
                                 CONFIG.GAME_HEIGHT - self.height - bottom_indent,
                                 self.width, self.height)
 

@@ -7,7 +7,7 @@
 
   "PADDLE_WIDTH": 250,
   "PADDLE_HEIGHT": 30,
-  "PADDLE_SPEED": 40,
+  "PADDLE_SPEED": 30,
   "PADDLE_COLOR": "gray",
 
   "BALL_RADIUS": 12,

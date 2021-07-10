@@ -6,7 +6,7 @@ import pygame
 from ball import Ball
 from block import Block, SolidBlock
 from config import CONFIG
-from handlers import mouse_handler, key_handler, events_handler
+from handlers import MouseHandler, KeyHandler, GeneralEventsHandler
 from paddle import Paddle
 from sounds import Sounds
 
@@ -20,46 +20,45 @@ class Game:
         self.run = True
         self.lives = CONFIG.LIVES
         self.scores = 0
+        self.paddle = Paddle(CONFIG.PADDLE_WIDTH, CONFIG.PADDLE_HEIGHT, CONFIG.PADDLE_SPEED, CONFIG.PADDLE_COLOR)
+        self.ball = Ball(CONFIG.BALL_RADIUS, CONFIG.BALL_SPEED, CONFIG.BALL_COLOR)
+        self.blocks = self._spawn_blocks_map()
+        self.mouse_handler = MouseHandler(self.paddle, self.ball)
+        self.key_handler = KeyHandler(self.paddle, self.ball)
         self.big_font = pygame.font.SysFont('segou', 140)
         self.small_font = pygame.font.SysFont('comicsans', 34)
 
     def restart_game(self) -> None:
-        self.lives = CONFIG.LIVES
-        self.scores = 0
-        self.run = True
+        self.__init__()
         self.main_loop()
 
     def main_loop(self) -> None:
         screen = pygame.display.set_mode((CONFIG.GAME_WIDTH, CONFIG.GAME_HEIGHT))
         clock = pygame.time.Clock()
-
         bg_img = pygame.image.load(CONFIG.BG_PATH).convert()
-        paddle = Paddle(CONFIG.PADDLE_WIDTH, CONFIG.PADDLE_HEIGHT, CONFIG.PADDLE_SPEED, CONFIG.PADDLE_COLOR)
-        ball = Ball(CONFIG.BALL_RADIUS, CONFIG.BALL_SPEED, CONFIG.BALL_COLOR)
-        blocks = self._spawn_blocks_map()
 
         while self.run:
             self._listen_restart()
             # drawing
             screen.blit(bg_img, (0, 0))
-            paddle.draw(screen)
-            [block.draw(screen) for block in blocks]
-            ball.draw(screen)
+            self.paddle.draw(screen)
+            [block.draw(screen) for block in self.blocks]
+            self.ball.draw(screen)
             self._draw_hud(screen)
             # movement
-            ball.move()
+            self.ball.move()
             # loose
-            self._handle_loosing_life(screen, ball)
+            self._handle_loosing_life(screen, self.ball)
             # win
-            self._handle_win(screen, blocks)
+            self._handle_win(screen, self.blocks)
             # collisions
-            self._ball_with_block_collision(ball, blocks)
-            ball.handle_paddle_collision(paddle)
-            ball.handle_walls_collision()
-            ball.handle_top_collision()
+            self._ball_with_block_collision(self.ball, self.blocks)
+            self.ball.handle_paddle_collision(self.paddle)
+            self.ball.handle_walls_collision()
+            self.ball.handle_top_collision()
             # controls
-            mouse_handler(paddle)
-            key_handler(paddle)
+            self.mouse_handler.handle_mouse_events()
+            self.key_handler.handle_key_pressing()
             # update screen
             pygame.display.flip()
             clock.tick(CONFIG.FPS)
@@ -125,7 +124,7 @@ class Game:
             self._listen_restart()
 
     def _listen_restart(self) -> None:
-        restart = events_handler()
+        restart = GeneralEventsHandler().handle_general_events()
         if restart:
             self.restart_game()
 
