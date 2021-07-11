@@ -3,11 +3,11 @@ from config import CONFIG
 
 
 class Paddle:
-    def __init__(self, width: int, height: int, speed: int, color: str):
+    def __init__(self, width: int, height: int, speed: int, color: pygame.Color):
         self.width = width
         self.height = height
         self.movement_speed = speed
-        self.color = pygame.Color(color)
+        self.color = color
         bottom_indent = 10
         self.rect = pygame.Rect(CONFIG.GAME_WIDTH // 2 - self.width // 2,
                                 CONFIG.GAME_HEIGHT - self.height - bottom_indent,

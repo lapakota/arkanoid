@@ -42,10 +42,10 @@ class KeyHandler:
                     self.paddle.rect.w += growth_rate
                     self.paddle.width += growth_rate
             elif key[pygame.K_x]:
-                smallest_width = 30 + growth_rate
-                if self.paddle.width >= smallest_width:
-                    self.paddle.rect.w -= 5
-                    self.paddle.width -= 5
+                smallest_width = 35
+                if self.paddle.width > smallest_width:
+                    self.paddle.rect.w -= growth_rate
+                    self.paddle.width -= growth_rate
 
 
 class MouseHandler:

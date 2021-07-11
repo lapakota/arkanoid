@@ -7,19 +7,19 @@ from sounds import *
 
 
 class Ball:
-    def __init__(self, radius, speed, color):
+    def __init__(self, radius: int, speed: int, color: pygame.Color):
         self.dx = 0
         self.dy = 0
         self.radius = radius
         self.movement_speed = speed
-        self.color = pygame.Color(color)
+        self.color = color
         self.rect_side = int(self.radius * 2 ** 0.5)  # side of the inscribed square
         y_offset_from_center = 250
         self.rect = pygame.Rect(CONFIG.GAME_WIDTH // 2 - self.radius, CONFIG.GAME_HEIGHT // 2 + y_offset_from_center,
                                 self.rect_side, self.rect_side)
         self._damaged_combo = 0
 
-    def stick_to_the_paddle(self, paddle: Paddle):
+    def stick_to_the_paddle(self, paddle: Paddle) -> None:
         self.rect.centerx = paddle.rect.centerx
         self.rect.centery = paddle.rect.centery - CONFIG.PADDLE_HEIGHT // 2 - self.radius
 
@@ -50,7 +50,7 @@ class Ball:
         elif delta_x > delta_y:
             self.dy *= -1
         # collision with vertical side
-        elif delta_y > delta_x:
+        elif delta_x <= delta_y:
             self.dx *= -1
 
     def is_out_of_bounds(self) -> bool:
@@ -93,10 +93,10 @@ class Ball:
     def draw(self, screen: pygame.surface) -> None:
         pygame.draw.circle(screen, self.color, self.rect.center, self.radius)
 
-    def draw_rect(self, screen: pygame.surface) -> None:
-        pygame.draw.rect(screen, self.color, self.rect)
-
     def _speed_up(self) -> None:
         if self._damaged_combo % CONFIG.DAMAGED_FOR_SPEEDUP == 0:
             self.movement_speed += 1
             self._damaged_combo = 0
+
+    def _draw_rect(self, screen: pygame.surface) -> None:
+        pygame.draw.rect(screen, self.color, self.rect)

@@ -14,10 +14,10 @@ class Block:
         self.scores = 10
         self.lives = 1
 
-    def is_dead(self):
+    def is_dead(self) -> bool:
         return self.lives <= 0
 
-    def take_damage(self):
+    def take_damage(self) -> None:
         self.lives -= 1
 
     def draw(self, screen: pygame.surface) -> None:
@@ -30,7 +30,7 @@ class SolidBlock(Block):
         self.scores = 30
         self.lives = 3
 
-    def take_damage(self):
+    def take_damage(self) -> None:
         self.lives -= 1
-        new_color = self.color[0] - 60
-        self.color = (new_color, new_color, new_color)
+        new_color_value = self.color[0] - 60
+        self.color = (new_color_value, new_color_value, new_color_value)

@@ -1,5 +1,5 @@
 from random import randrange
-from typing import List
+from typing import List, Tuple
 
 import pygame
 
@@ -11,7 +11,7 @@ from paddle import Paddle
 from sounds import Sounds
 
 
-def get_random_color():
+def get_random_rgb_color() -> Tuple[int, int, int]:
     return randrange(30, 256), randrange(30, 256), randrange(30, 256)
 
 
@@ -20,8 +20,9 @@ class Game:
         self.run = True
         self.lives = CONFIG.LIVES
         self.scores = 0
-        self.paddle = Paddle(CONFIG.PADDLE_WIDTH, CONFIG.PADDLE_HEIGHT, CONFIG.PADDLE_SPEED, CONFIG.PADDLE_COLOR)
-        self.ball = Ball(CONFIG.BALL_RADIUS, CONFIG.BALL_SPEED, CONFIG.BALL_COLOR)
+        self.paddle = Paddle(CONFIG.PADDLE_WIDTH, CONFIG.PADDLE_HEIGHT, CONFIG.PADDLE_SPEED,
+                             pygame.Color(CONFIG.PADDLE_COLOR))
+        self.ball = Ball(CONFIG.BALL_RADIUS, CONFIG.BALL_SPEED, pygame.Color(CONFIG.BALL_COLOR))
         self.ball.stick_to_the_paddle(self.paddle)
         self.blocks = self._spawn_blocks_map()
         self.mouse_handler = MouseHandler(self.paddle, self.ball)
@@ -49,7 +50,7 @@ class Game:
             # movement
             self.ball.move()
             # loose
-            self._handle_loosing_life(screen, self.ball, self.paddle)
+            self._handle_loss_life(screen, self.ball, self.paddle)
             # win
             self._handle_win(screen, self.blocks)
             # collisions
@@ -74,9 +75,9 @@ class Game:
         [screen.blit(text, (left_indent + width_between_texts * i,
                             CONFIG.GAME_HEIGHT - down_indent)) for i, text in enumerate(all_text)]
 
-    def _handle_loosing_life(self, screen: pygame.surface, ball: Ball, paddle: Paddle) -> None:
+    def _handle_loss_life(self, screen: pygame.surface, ball: Ball, paddle: Paddle) -> None:
         if ball.is_out_of_bounds():
-            self._loose_life()
+            self._lose_life()
             ball.respawn(paddle)
             if self._is_dead():
                 Sounds.GAME_LOOSE.value.play()
@@ -84,7 +85,7 @@ class Game:
                 self._draw_end_text(screen, "GAME OVER", pygame.Color('red'))
             Sounds.LOOSE_LIFE.value.play()
 
-    def _handle_win(self, screen: pygame.surface, blocks) -> None:
+    def _handle_win(self, screen: pygame.surface, blocks: List[Block]) -> None:
         if len(blocks) == 0:
             Sounds.GAME_WIN.value.play()
             self.run = False
@@ -99,7 +100,7 @@ class Game:
         up_indent = 5
         blocks = [Block(left_indent + (CONFIG.BLOCK_WIDTH + width_between_blocks) * column,
                         up_indent + (CONFIG.BLOCK_HEIGHT + width_between_blocks) * row,
-                        CONFIG.BLOCK_WIDTH, CONFIG.BLOCK_HEIGHT, get_random_color())
+                        CONFIG.BLOCK_WIDTH, CONFIG.BLOCK_HEIGHT, get_random_rgb_color())
                   for column in range(columns_count) for row in range(rows_count)]
 
         from_upper_blocks = up_indent + (CONFIG.BLOCK_HEIGHT + width_between_blocks) * rows_count
@@ -134,7 +135,7 @@ class Game:
         if scores_from_dead_block:
             self.scores += scores_from_dead_block
 
-    def _loose_life(self) -> None:
+    def _lose_life(self) -> None:
         self.lives -= 1
 
     def _is_dead(self) -> bool:
