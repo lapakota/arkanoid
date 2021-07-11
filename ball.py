@@ -50,7 +50,7 @@ class Ball:
         elif delta_x > delta_y:
             self.dy *= -1
         # collision with vertical side
-        elif delta_x <= delta_y:
+        elif delta_x < delta_y:
             self.dx *= -1
 
     def is_out_of_bounds(self) -> bool:
