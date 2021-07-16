@@ -1,5 +1,5 @@
 import random
-from typing import List, Union
+from typing import List
 
 from block import Block
 from paddle import Paddle
@@ -13,22 +13,11 @@ class Ball:
         self.radius = radius
         self.movement_speed = speed
         self.color = color
-        self.rect_side = int(self.radius * 2 ** 0.5)  # side of the inscribed square
         y_offset_from_center = 250
+        rect_side = int(self.radius * 2 ** 0.5)  # side of the inscribed square
         self.rect = pygame.Rect(CONFIG.GAME_WIDTH // 2 - self.radius, CONFIG.GAME_HEIGHT // 2 + y_offset_from_center,
-                                self.rect_side, self.rect_side)
-        self._damaged_combo = 0
-
-    def stick_to_the_paddle(self, paddle: Paddle) -> None:
-        self.rect.centerx = paddle.rect.centerx
-        self.rect.centery = paddle.rect.centery - CONFIG.PADDLE_HEIGHT // 2 - self.radius
-
-    def is_stopped(self) -> bool:
-        return self.dx == 0 and self.dy == 0
-
-    def start_moving(self) -> None:
-        self.dx = random.choice([1, -1])  # move right or left
-        self.dy = -1
+                                rect_side, rect_side)
+        self._bounce_combo = 0
 
     def bounce_from_collided_rect(self, rect: pygame.Rect) -> None:
         """The function changes the dx, dy of the ball,
@@ -42,7 +31,7 @@ class Ball:
         else:
             delta_y = rect.bottom - self.rect.top
 
-        epsilon = 10
+        epsilon = 7
         # collision with angle of rect
         if abs(delta_x - delta_y) < epsilon:
             self.dx, self.dy = -self.dx, -self.dy
@@ -54,37 +43,35 @@ class Ball:
             self.dx *= -1
 
     def is_out_of_bounds(self) -> bool:
-        return self.rect.y > CONFIG.GAME_HEIGHT
+        return self.rect.y > CONFIG.GAME_HEIGHT + self.rect.height
 
-    def handle_walls_collision(self) -> None:
-        if self.rect.centerx < self.radius or self.rect.centerx > CONFIG.GAME_WIDTH - self.radius:
-            self.dx *= -1
+    def is_stopped(self) -> bool:
+        return self.dx == 0 and self.dy == 0
 
-    def handle_top_collision(self) -> None:
-        if self.rect.centery < self.radius:
-            self.dy *= -1
+    def is_walls_collision(self) -> bool:
+        return self.rect.centerx < self.radius \
+               or self.rect.centerx > CONFIG.GAME_WIDTH - self.radius
 
-    def handle_paddle_collision(self, paddle: Paddle) -> None:
-        if self.rect.colliderect(paddle.rect) and self.dy > 0:
-            self.bounce_from_collided_rect(paddle.rect)
-            Sounds.BALL_BONK.value.play()
+    def is_top_collision(self) -> bool:
+        return self.rect.centery < self.radius
 
-    def handle_block_collision(self, blocks: List[Block]) -> Union[None, int]:
-        damage_index = self.rect.collidelist(blocks)
-        if damage_index != -1:
-            damaged_block = blocks[damage_index]
-            self.bounce_from_collided_rect(damaged_block.rect)
-            damaged_block.take_damage()
-            self._damaged_combo += 1
-            self._speed_up()
-            Sounds.BLOCK_CRASH.value.play()
-            if damaged_block.is_dead():
-                blocks.pop(damage_index)
-                return damaged_block.scores
+    def is_paddle_collision(self, paddle: Paddle) -> bool:
+        return self.rect.colliderect(paddle.rect) and self.dy > 0
+
+    def is_block_collision(self, blocks: List[Block]) -> bool:
+        return self.rect.collidelist(blocks) != -1
 
     def move(self) -> None:
         self.rect.x += self.movement_speed * self.dx
         self.rect.y += self.movement_speed * self.dy
+
+    def start_moving(self) -> None:
+        self.dx = random.choice([1, -1])  # move right or left
+        self.dy = -1
+
+    def stick_to_the_paddle(self, paddle: Paddle) -> None:
+        self.rect.centerx = paddle.rect.centerx
+        self.rect.centery = paddle.rect.centery - CONFIG.PADDLE_HEIGHT // 2 - self.radius
 
     def respawn(self, paddle: Paddle) -> None:
         self.__init__(self.radius, self.movement_speed, self.color)
@@ -93,10 +80,11 @@ class Ball:
     def draw(self, screen: pygame.surface) -> None:
         pygame.draw.circle(screen, self.color, self.rect.center, self.radius)
 
-    def _speed_up(self) -> None:
-        if self._damaged_combo % CONFIG.DAMAGED_FOR_SPEEDUP == 0:
+    def speed_up(self) -> None:
+        self._bounce_combo += 1
+        if self._bounce_combo % CONFIG.DAMAGED_FOR_SPEEDUP == 0:
             self.movement_speed += 1
-            self._damaged_combo = 0
+            self._bounce_combo = 0
 
     def _draw_rect(self, screen: pygame.surface) -> None:
         pygame.draw.rect(screen, self.color, self.rect)

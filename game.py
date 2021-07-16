@@ -1,18 +1,14 @@
-from random import randrange
-from typing import List, Tuple
+from typing import List
 
 import pygame
 
 from ball import Ball
 from block import Block, SolidBlock
+from random_color import RandomColor
 from config import CONFIG
 from handlers import MouseHandler, KeyHandler, GeneralEventsHandler
 from paddle import Paddle
 from sounds import Sounds
-
-
-def get_random_rgb_color() -> Tuple[int, int, int]:
-    return randrange(30, 256), randrange(30, 256), randrange(30, 256)
 
 
 class Game:
@@ -40,30 +36,43 @@ class Game:
         bg_img = pygame.image.load(CONFIG.BG_PATH).convert()
 
         while self.run:
+            pygame.display.set_caption(f'Arcanoid   FPS: {str(round(clock.get_fps()))}')
             self._listen_restart()
-            # drawing
             screen.blit(bg_img, (0, 0))
             self.paddle.draw(screen)
             [block.draw(screen) for block in self.blocks]
             self.ball.draw(screen)
             self._draw_hud(screen)
-            # movement
             self.ball.move()
-            # loose
             self._handle_loss_life(screen, self.ball, self.paddle)
-            # win
             self._handle_win(screen, self.blocks)
-            # collisions
-            self._ball_with_block_collision(self.ball, self.blocks)
-            self.ball.handle_paddle_collision(self.paddle)
-            self.ball.handle_walls_collision()
-            self.ball.handle_top_collision()
-            # controls
+            self._handle_all_ball_collisions(self.ball)
             self.mouse_handler.handle_mouse_events()
             self.key_handler.handle_key_pressing()
-            # update screen
             pygame.display.flip()
             clock.tick(CONFIG.FPS)
+
+    def _handle_all_ball_collisions(self, ball: Ball) -> None:
+        if ball.is_walls_collision() and ball.is_top_collision():
+            ball.dx *= -1
+            ball.dy *= -1
+        elif ball.is_walls_collision():
+            ball.dx *= -1
+        elif ball.is_top_collision():
+            ball.dy *= -1
+        elif ball.is_paddle_collision(self.paddle):
+            ball.bounce_from_collided_rect(self.paddle.rect)
+            Sounds.BALL_BONK.value.play()
+        elif ball.is_block_collision(self.blocks):
+            damage_index = ball.rect.collidelist(self.blocks)
+            damaged_block = self.blocks[damage_index]
+            ball.bounce_from_collided_rect(damaged_block.rect)
+            damaged_block.take_damage()
+            ball.speed_up()
+            Sounds.BLOCK_CRASH.value.play()
+            if damaged_block.is_dead():
+                self.blocks.pop(damage_index)
+                self.scores += damaged_block.scores
 
     def _draw_hud(self, screen: pygame.surface) -> None:
         lives_text = self.small_font.render(f'lives: {self.lives}', True, pygame.Color('white'))
@@ -98,9 +107,15 @@ class Game:
         width_between_blocks = 5
         left_indent = 2
         up_indent = 5
+        growth_rate = 128 // max(columns_count, rows_count)
+        random_color = RandomColor()
+
         blocks = [Block(left_indent + (CONFIG.BLOCK_WIDTH + width_between_blocks) * column,
                         up_indent + (CONFIG.BLOCK_HEIGHT + width_between_blocks) * row,
-                        CONFIG.BLOCK_WIDTH, CONFIG.BLOCK_HEIGHT, get_random_rgb_color())
+                        CONFIG.BLOCK_WIDTH, CONFIG.BLOCK_HEIGHT,
+                        (random_color.r_shift_func(random_color.r, growth_rate * column),
+                         random_color.g_shift_func(random_color.g, growth_rate * row),
+                         random_color.b_shift_func(random_color.b, growth_rate * row)))
                   for column in range(columns_count) for row in range(rows_count)]
 
         from_upper_blocks = up_indent + (CONFIG.BLOCK_HEIGHT + width_between_blocks) * rows_count
@@ -129,11 +144,6 @@ class Game:
         restart = GeneralEventsHandler().handle_general_events()
         if restart:
             self.restart_game()
-
-    def _ball_with_block_collision(self, ball, blocks):
-        scores_from_dead_block = ball.handle_block_collision(blocks)
-        if scores_from_dead_block:
-            self.scores += scores_from_dead_block
 
     def _lose_life(self) -> None:
         self.lives -= 1
