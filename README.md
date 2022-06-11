@@ -32,7 +32,7 @@ Block types:
 
 Normal blocks have a random color and are broken from 1 hit of the ball, and solid blocks have a gray color and are broken from three hits
 
-# Viev
+# View
 ![image](https://user-images.githubusercontent.com/46228212/125982545-2cd52462-bae4-4b07-9078-4a0e29c3704b.png)
 
 ![image](https://user-images.githubusercontent.com/46228212/125202176-dcf04f00-e28b-11eb-8edd-71ba1e884380.png)
